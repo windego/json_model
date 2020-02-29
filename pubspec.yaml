@@ -8,7 +8,7 @@ environment:
   sdk: ">=2.1.0 <3.0.0"
 
 dependencies:
-  args: ^1.5.3
+  args: ^1.5.2
   build: ^1.2.2
   glob: ^1.2.0
   logging: ^0.11.4
