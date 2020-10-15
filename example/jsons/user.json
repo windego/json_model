@@ -1,11 +1,11 @@
 {
-  "@import": "test_dir/profile.dart",
-  "@JsonKey(ignore: true) Profile": "profile",
+  "@import": "test_dir/profile_entity.dart",
+  "@JsonKey(ignore: true) ProfileEntity": "profile",
   "@JsonKey(name: '+1') int": "loved",
   "name": "wendux",
-  "father":"$user",
-  "friends":"$[]user",
-  "keywords":"$[]String",
-  "bankCards":"$[]card",
+  "father": "$user",
+  "friends": "$[]user",
+  "keywords": "$[]String",
+  "bankCards": "$[]card",
   "age": 20
 }
