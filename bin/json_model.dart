@@ -23,7 +23,6 @@ void main(List<String> args) {
   parser.addOption('tag',
       defaultsTo: '\$', callback: (v) => tag = v, help: "Specify the tag ");
   parser.parse(args);
-  print(args);
   if (walk(src, dist, tag)) {
     //br.run(['clean']);
     br.run(['build', '--delete-conflicting-outputs']);
@@ -54,6 +53,9 @@ bool walk(String srcDir, String distDir, String tag) {
       String fileName = name + '_entity';
       String className = name[0].toUpperCase() + name.substring(1) + 'Entity';
 
+      className = className.replaceAllMapped(
+          RegExp(r'_(\w)'), (Match m) => '${m[1].toUpperCase()}');
+
       if (paths.last.toLowerCase() != "json" || name.startsWith("_")) return;
       if (name.startsWith("_")) return;
       //下面生成模板
@@ -81,7 +83,6 @@ bool walk(String srcDir, String distDir, String tag) {
         attrs.write("    ");
       });
 
-      print('className$className');
       var dist = format(tpl, [
         fileName,
         className,
@@ -100,7 +101,6 @@ bool walk(String srcDir, String distDir, String tag) {
           .replaceFirst(srcDir, distDir)
           .replaceFirst(".json", "_entity.dart");
 
-      print("p$p");
       File(p)
         ..createSync(recursive: true)
         ..writeAsStringSync(dist);
