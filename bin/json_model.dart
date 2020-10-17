@@ -3,9 +3,10 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:path/path.dart' as path;
 import 'build_runner.dart' as br;
+import '../tpl/json.dart';
 
 const tpl =
-    "import 'package:json_annotation/json_annotation.dart';\n%t\npart '%s.g.dart';\n\n@JsonSerializable()\nclass %s {\n    %s();\n\n    %s\n    factory %s.fromJson(Map<String,dynamic> json) => _\$%sFromJson(json);\n    Map<String, dynamic> toJson() => _\$%sToJson(this);\n}\n";
+    "import 'package:json_annotation/json_annotation.dart';\n%t\npart '%s.g.dart';\n\n@JsonSerializable()\nclass %s {\n    %s();\n\n    %s\n    factory %s.fromJson(Map<String,dynamic> json) => _\$%sFromJson(json);\n    Map<String, dynamic> toJson(%s data) => _\$%sToJson(data);\n}\n";
 
 void main(List<String> args) {
   String src;
@@ -36,6 +37,8 @@ bool walk(String srcDir, String distDir, String tag) {
   var src = Directory(srcDir);
   var list = src.listSync(recursive: true);
   String indexFile = "";
+  String json_single = "";
+  String json_list = "";
   if (list.isEmpty) return false;
   if (!Directory(distDir).existsSync()) {
     Directory(distDir).createSync(recursive: true);
@@ -44,6 +47,7 @@ bool walk(String srcDir, String distDir, String tag) {
 //  var template= File(tpl).readAsStringSync();
 //  File(path.join(Directory.current.parent.path,"model.tplx")).writeAsString(jsonEncode(template));
   File file;
+  List classList = new List<String>();
   list.forEach((f) {
     if (FileSystemEntity.isFileSync(f.path)) {
       file = File(f.path);
@@ -55,6 +59,8 @@ bool walk(String srcDir, String distDir, String tag) {
 
       className = className.replaceAllMapped(
           RegExp(r'_(\w)'), (Match m) => '${m[1].toUpperCase()}');
+
+      classList.add(className);
 
       if (paths.last.toLowerCase() != "json" || name.startsWith("_")) return;
       if (name.startsWith("_")) return;
@@ -90,6 +96,7 @@ bool walk(String srcDir, String distDir, String tag) {
         attrs.toString(),
         className,
         className,
+        className,
         className
       ]);
       var _import = set.join(";\r\n");
@@ -106,11 +113,22 @@ bool walk(String srcDir, String distDir, String tag) {
         ..writeAsStringSync(dist);
       var relative = p.replaceFirst(distDir + path.separator, "");
       indexFile += "export '$relative' ; \n";
+
+      json_single +=
+          "\n      case '$className':\n        return $className.fromJson(json);";
+      json_list +=
+          "\n      case '$className':\n        return List<$className>();";
     }
   });
   if (indexFile.isNotEmpty) {
     File(path.join(distDir, "index.dart")).writeAsStringSync(indexFile);
   }
+
+  var json_conver = format(json_conver_tml, [json_single, json_list]);
+  File(path.join(distDir, "base/json_convert_content.dart"))
+    ..createSync(recursive: true)
+    ..writeAsStringSync(json_conver);
+
   return indexFile.isNotEmpty;
 }
 
